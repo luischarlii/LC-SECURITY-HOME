@@ -41,50 +41,6 @@ footer{text-align:center;padding:25px;color:#777;font-size:12px}
  <p>Centro de protección de aplicaciones</p>
 </header>
 
-<h2>Mis aplicaciones LC</h2>
-
-<div class="card">
-<h3>LC ShortLinks</h3>
-<p>Administrador de enlaces cortos.</p>
-<p class="status">Registro de seguridad pendiente</p>
-</div>
-
-<div class="card">
-<h3>LC Prompt Studio</h3>
-<p>Generador de prompts de inteligencia artificial.</p>
-<p class="status">Registro de seguridad pendiente</p>
-</div>
-
-<div class="card">
-<h3>LC Pensiona México</h3>
-<p>Sistema de orientación sobre pensiones.</p>
-<p class="status">Registro de seguridad pendiente</p>
-</div>
-
-<div class="card">
-<h3>LC PNG a SVG</h3>
-<p>Convertidor de imágenes vectoriales.</p>
-<p class="status">Registro de seguridad pendiente</p>
-</div>
-
-<div class="card">
-<h3>LC Passwords</h3>
-<p>Administrador de contraseñas.</p>
-<p class="status">Registro de seguridad pendiente</p>
-</div>
-
-<div class="card">
-<h3>LC Universal Player</h3>
-<p>Reproductor multimedia universal.</p>
-<p class="status">Registro de seguridad pendiente</p>
-</div>
-
-<div class="card">
-<h3>LC SECURITY HOME</h3>
-<p>Centro de protección de aplicaciones LC.</p>
-<p class="status">Panel principal</p>
-</div>
-
 <main>
  <h2>Panel de administración</h2>
 
@@ -93,6 +49,78 @@ footer{text-align:center;padding:25px;color:#777;font-size:12px}
   <p class="status">Panel inicializado</p>
   <p>Centro de control LC preparado.</p>
  </div>
+
+<div class="card">
+  <h2>🛡️ Centro de revisiones de seguridad</h2>
+  <p>Selecciona una aplicación para revisar su protección.</p>
+  <div id="securityPanel"></div>
+</div>
+
+<script>
+const lcApps = [
+  "LC ShortLinks",
+  "LC Prompt Studio",
+  "LC Pensiona México",
+  "LC PNG a SVG",
+  "LC Passwords",
+  "LC Universal Player",
+  "LC SECURITY HOME"
+];
+
+const securityChecks = [
+  "Protección de GitHub",
+  "Acceso y permisos",
+  "Protección del código",
+  "Seguridad de datos",
+  "Copia de respaldo"
+];
+
+const panel = document.getElementById("securityPanel");
+
+lcApps.forEach((app, index) => {
+  const card = document.createElement("div");
+  card.className = "card";
+
+  const title = document.createElement("h3");
+  title.textContent = app;
+
+  const button = document.createElement("button");
+  button.textContent = "REVISAR SEGURIDAD";
+
+  button.onclick = () => {
+    const content = document.createElement("div");
+
+    securityChecks.forEach(check => {
+      const label = document.createElement("label");
+      label.style.display = "block";
+      label.style.margin = "12px 0";
+
+      const select = document.createElement("select");
+      select.style.display = "block";
+      select.style.marginTop = "5px";
+      select.style.padding = "8px";
+
+      ["Pendiente de revisar", "Protegido", "Requiere atención"].forEach(status => {
+        const option = document.createElement("option");
+        option.value = status;
+        option.textContent = status;
+        select.appendChild(option);
+      });
+
+      label.append(check, select);
+      content.appendChild(label);
+    });
+
+    card.appendChild(content);
+    button.disabled = true;
+    button.textContent = "REVISIÓN ABIERTA";
+  };
+
+  card.append(title, button);
+  panel.appendChild(card);
+});
+</script>
+
 
  <h2>Mis aplicaciones</h2>
 
