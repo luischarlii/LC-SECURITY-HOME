@@ -56,6 +56,7 @@ footer{text-align:center;padding:25px;color:#777;font-size:12px}
   <div id="securityPanel"></div>
 </div>
 
+
 <script>
 const lcApps = [
   "LC ShortLinks",
@@ -75,22 +76,50 @@ const securityChecks = [
   "Copia de respaldo"
 ];
 
+const storageKey = "lcSecurityHomeReviews_v1";
+
+let reviews = {};
+
+try {
+  reviews = JSON.parse(localStorage.getItem(storageKey)) || {};
+} catch (error) {
+  reviews = {};
+}
+
 const panel = document.getElementById("securityPanel");
 
-lcApps.forEach((app, index) => {
-  const card = document.createElement("div");
-  card.className = "card";
+function saveReviews() {
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(reviews));
+  } catch (error) {
+    alert("No se pudieron guardar los cambios.");
+  }
+}
 
-  const title = document.createElement("h3");
-  title.textContent = app;
+function renderPanel() {
+  panel.innerHTML = "";
 
-  const button = document.createElement("button");
-  button.textContent = "REVISAR SEGURIDAD";
+  lcApps.forEach((app, index) => {
+    const card = document.createElement("div");
+    card.className = "card";
 
-  button.onclick = () => {
+    const title = document.createElement("h3");
+    title.textContent = app;
+
+    const button = document.createElement("button");
+    button.textContent = "REVISAR SEGURIDAD";
+
     const content = document.createElement("div");
+    content.style.marginTop = "15px";
 
-    securityChecks.forEach(check => {
+    const data = reviews[index] || {
+      checks: {},
+      date: ""
+    };
+
+    let completed = 0;
+
+    securityChecks.forEach((check, i) => {
       const label = document.createElement("label");
       label.style.display = "block";
       label.style.margin = "12px 0";
@@ -100,25 +129,67 @@ lcApps.forEach((app, index) => {
       select.style.marginTop = "5px";
       select.style.padding = "8px";
 
-      ["Pendiente de revisar", "Protegido", "Requiere atención"].forEach(status => {
+      [
+        "Pendiente de revisar",
+        "Protegido",
+        "Requiere atención"
+      ].forEach(status => {
         const option = document.createElement("option");
         option.value = status;
         option.textContent = status;
         select.appendChild(option);
       });
 
+      select.value = data.checks[i] || "Pendiente de revisar";
+
+      if (select.value !== "Pendiente de revisar") {
+        completed++;
+      }
+
+      select.addEventListener("change", () => {
+        if (!reviews[index]) {
+          reviews[index] = { checks: {}, date: "" };
+        }
+
+        reviews[index].checks[i] = select.value;
+        reviews[index].date = new Date().toLocaleString("es-MX");
+
+        saveReviews();
+        renderPanel();
+      });
+
       label.append(check, select);
       content.appendChild(label);
     });
 
-    card.appendChild(content);
-    button.disabled = true;
-    button.textContent = "REVISIÓN ABIERTA";
-  };
+    const progress = document.createElement("p");
+    progress.className = "status";
+    progress.textContent =
+      "Revisiones registradas: " + completed + " de 5";
 
-  card.append(title, button);
-  panel.appendChild(card);
-});
+    const date = document.createElement("p");
+    date.textContent = data.date
+      ? "Última revisión: " + data.date
+      : "Sin revisiones registradas";
+
+    content.prepend(progress);
+    content.appendChild(date);
+
+    button.onclick = () => {
+      content.hidden = !content.hidden;
+      button.textContent = content.hidden
+        ? "REVISAR SEGURIDAD"
+        : "CERRAR REVISIÓN";
+    };
+
+    content.hidden = true;
+
+    card.append(title, button, content);
+    panel.appendChild(card);
+  });
+}
+
+renderPanel();
 </script>
 
 
