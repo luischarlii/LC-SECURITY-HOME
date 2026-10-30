@@ -56,6 +56,23 @@ footer{text-align:center;padding:25px;color:#777;font-size:12px}
   <div id="securityPanel"></div>
 </div>
 
+<div class="card">
+  <h3>💾 LC BACKUP & RESTORE</h3>
+  <p>Respaldo y recuperación de revisiones de seguridad.</p>
+
+  <button id="exportBackup">
+    EXPORTAR RESPALDO
+  </button>
+
+  <div style="height:12px"></div>
+
+  <input
+    type="file"
+    id="importBackup"
+    accept=".json,application/json"
+  >
+</div>
+
 
 <script>
 const lcApps = [
@@ -190,6 +207,86 @@ function renderPanel() {
 }
 
 renderPanel();
+
+document.getElementById("exportBackup").addEventListener("click", () => {
+  const backup = {
+    app: "LC SECURITY HOME",
+    version: 1,
+    date: new Date().toISOString(),
+    reviews: reviews
+  };
+
+  const blob = new Blob(
+    [JSON.stringify(backup, null, 2)],
+    { type: "application/json" }
+  );
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = "LC-SECURITY-HOME-BACKUP.json";
+  link.click();
+
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("importBackup").addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    const backup = JSON.parse(await file.text());
+
+    if (
+      backup.app !== "LC SECURITY HOME" ||
+      backup.version !== 1 ||
+      !backup.reviews ||
+      typeof backup.reviews !== "object" ||
+      Array.isArray(backup.reviews)
+    ) {
+      throw new Error("Formato incorrecto");
+    }
+
+    const valid = Object.entries(backup.reviews).every(([key, item]) => {
+      return (
+        /^\d+$/.test(key) &&
+        Number(key) < lcApps.length &&
+        item &&
+        typeof item === "object" &&
+        !Array.isArray(item) &&
+        item.checks &&
+        typeof item.checks === "object" &&
+        !Array.isArray(item.checks) &&
+        Object.entries(item.checks).every(([i, status]) =>
+          /^\d+$/.test(i) &&
+          Number(i) < securityChecks.length &&
+          ["Pendiente de revisar", "Protegido", "Requiere atención"].includes(status)
+        ) &&
+        typeof item.date === "string"
+      );
+    });
+
+    if (!valid) throw new Error("Datos no válidos");
+
+    if (!confirm("¿Deseas reemplazar las revisiones actuales con este respaldo?")) {
+      event.target.value = "";
+      return;
+    }
+
+    reviews = backup.reviews;
+    saveReviews();
+    renderPanel();
+
+    alert("Respaldo recuperado correctamente.");
+
+  } catch (error) {
+    alert("No se pudo importar el respaldo. Verifica el archivo.");
+  }
+
+  event.target.value = "";
+});
+
 </script>
 
 
